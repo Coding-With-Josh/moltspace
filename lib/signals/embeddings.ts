@@ -8,9 +8,8 @@ function getClient(): Groq | null {
 const groq = getClient();
 
 // Groq uses OpenAI-compatible embeddings API
-// Using text-embedding-3-small model (1536 dimensions)
+// Model dimension is determined by the API (e.g. nomic-embed-text-v1_5)
 const MODEL = 'text-embedding-3-small';
-const DIMENSIONS = 1536;
 
 /**
  * Generate embedding for a single text
@@ -25,10 +24,10 @@ export async function generateEmbedding(text: string): Promise<number[]> {
     const response = await groq.embeddings.create({
       model: MODEL,
       input: text,
-      dimensions: DIMENSIONS,
     });
 
-    return response.data[0].embedding;
+    const emb = response.data[0].embedding;
+    return Array.isArray(emb) ? emb : (JSON.parse(emb) as number[]);
   } catch (error) {
     console.error('Failed to generate embedding:', error);
     throw error;
@@ -44,10 +43,12 @@ export async function generateEmbeddings(texts: string[]): Promise<number[][]> {
     const response = await groq.embeddings.create({
       model: MODEL,
       input: texts,
-      dimensions: DIMENSIONS,
     });
 
-    return response.data.map(item => item.embedding);
+    return response.data.map((item) => {
+      const emb = item.embedding;
+      return Array.isArray(emb) ? emb : (JSON.parse(emb) as number[]);
+    });
   } catch (error) {
     console.error('Failed to generate embeddings:', error);
     throw error;
