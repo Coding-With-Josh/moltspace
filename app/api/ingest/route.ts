@@ -11,11 +11,12 @@ export const maxDuration = 300; // 5 minutes for Vercel
 export async function POST(request: Request) {
   try {
     // Parse body if present, otherwise use defaults
-    let body = {};
+    type IngestBody = { maxPosts?: number; includeComments?: boolean };
+    let body: IngestBody = {};
     try {
       const text = await request.text();
       if (text) {
-        body = JSON.parse(text);
+        body = JSON.parse(text) as IngestBody;
       }
     } catch (e) {
       // Body is optional, use defaults
